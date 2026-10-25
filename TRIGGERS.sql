@@ -1,18 +1,9 @@
--- ======================================================================
--- PROYECTO: LIBRO DE CLASES DIGITAL
--- ARCHIVO: TRIGGERS.sql
--- DESCRIPCION: Disparadores a nivel de fila y a nivel de sentencia
---              para la base de datos Oracle (Evaluación Parcial 2).
--- ======================================================================
-
 SET SERVEROUTPUT ON;
 
 -- ======================================================================
 -- 1. TRIGGER A NIVEL DE FILA (FOR EACH ROW)
--- Indicador pauta: IE2.3.1
 -- Tabla asociada: CALIFICACIONES
--- Propósito: Garantizar la integridad de datos validando que las notas
---            ingresadas o modificadas pertenezcan al rango de 1.0 a 7.0.
+-- Propósito: Garantizar la integridad de datos validando que las notas ingresadas o modificadas pertenezcan al rango de 1.0 a 7.0.
 -- ======================================================================
 CREATE OR REPLACE TRIGGER trg_validar_nota_bi
 BEFORE INSERT OR UPDATE ON calificaciones
@@ -29,10 +20,8 @@ END trg_validar_nota_bi;
 
 -- ======================================================================
 -- 2. TRIGGER A NIVEL DE SENTENCIA (STATEMENT)
--- Indicador pauta: IE2.3.1
 -- Tabla asociada: CALIFICACIONES
--- Propósito: Controlar la seguridad del sistema restringiendo cambios
---            masivos o individuales fuera del horario laboral administrativo.
+-- Propósito: Controlar la seguridad del sistema restringiendo cambios masivos o individuales fuera del horario laboral administrativo.
 -- ======================================================================
 CREATE OR REPLACE TRIGGER trg_control_horario_calificaciones
 BEFORE INSERT OR UPDATE OR DELETE ON calificaciones
