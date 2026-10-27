@@ -61,22 +61,8 @@ IS
         FROM alumnos
         WHERE id_alumno = p_id_alumno;
 
-        -- Si no existe el alumno, devuelve FALSE
-        IF v_cantidad = 0 THEN
-            RETURN FALSE;
-
-        -- Si existe exactamente un alumno, devuelve TRUE
-        ELSIF v_cantidad = 1 THEN
-            RETURN TRUE;
-
-        -- Control defensivo de duplicados
-        -- La PRIMARY KEY de id_alumno ya impide esta situacion
-        ELSE
-            RAISE_APPLICATION_ERROR(
-                -20001,
-                'Error: existen alumnos duplicados con el mismo ID'
-            );
-        END IF;
+        -- TRUE si el alumno existe (la PRIMARY KEY de id_alumno impide duplicados)
+        RETURN v_cantidad > 0;
 
     END fn_existe_alumno;
 
@@ -90,7 +76,7 @@ IS
         p_id_alumno IN alumnos.id_alumno%TYPE
     )
     IS
-        v_total_matriculas NUMBER := 0;
+        v_total_matriculas NUMBER;
     BEGIN
 
         -- Validar que el alumno exista
@@ -150,14 +136,14 @@ IS
         )
         LOOP
 
-            -- Contar las matriculas encontradas
-            v_total_matriculas := v_total_matriculas + 1;
-
             DBMS_OUTPUT.PUT_LINE('Matricula ID: ' || datos.id_matricula);
             DBMS_OUTPUT.PUT_LINE('Curso: ' || datos.nivel || ' ' ||datos.letra || ' (' || datos.anio_lectivo || ')');
             DBMS_OUTPUT.PUT_LINE('Fecha de matricula: ' || TO_CHAR(datos.fecha_matr, 'DD/MM/YYYY'));
 
         END LOOP;
+
+        -- Total de matriculas desde la funcion publica del package
+        v_total_matriculas := fn_total_matriculas_alumno(p_id_alumno);
 
         -- Mostrar mensaje si no tiene matriculas
         IF v_total_matriculas = 0 THEN
@@ -180,7 +166,6 @@ IS
 
     PROCEDURE sp_listar_alumnos
     IS
-        v_total NUMBER := 0;
     BEGIN
 
         DBMS_OUTPUT.PUT_LINE('====================================');
@@ -199,9 +184,6 @@ IS
         )
         LOOP
 
-            -- Incrementar el contador por cada alumno
-            v_total := v_total + 1;
-
             DBMS_OUTPUT.PUT_LINE('ID: ' || datos.id_alumno);
             DBMS_OUTPUT.PUT_LINE('Nombre: ' || datos.nombres);
             DBMS_OUTPUT.PUT_LINE('Apellido: ' || datos.apellidos);
@@ -211,7 +193,7 @@ IS
 
         -- Mostrar el total de alumnos
         DBMS_OUTPUT.PUT_LINE('------------------------------------');
-        DBMS_OUTPUT.PUT_LINE('TOTAL DE ALUMNOS: ' || v_total);
+        DBMS_OUTPUT.PUT_LINE('TOTAL DE ALUMNOS: ' || fn_total_alumnos);
 
     END sp_listar_alumnos;
 
@@ -305,5 +287,3 @@ FROM dual;
 SELECT pkg_alumnos.fn_total_alumnos()
     AS total_alumnos
 FROM dual;
-
-
