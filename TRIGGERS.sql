@@ -1,12 +1,36 @@
 SET SERVEROUTPUT ON;
 
 -- ======================================================================
--- 1. TRIGGER A NIVEL DE FILA (FOR EACH ROW)
+-- 1. TRIGGER A NIVEL DE SENTENCIA (STATEMENT)
+-- Tabla asociada: CALIFICACIONES
+-- Propósito: Controlar la seguridad del sistema restringiendo cambios masivos o individuales fuera del horario laboral administrativo.
+-- ======================================================================
+CREATE OR REPLACE TRIGGER trg_control_horario_calificaciones
+BEFORE INSERT OR UPDATE OR DELETE ON calificaciones
+DECLARE
+    v_operacion VARCHAR2(10);
+BEGIN
+    -- Bloquea modificaciones los fines de semana (Sábado/Domingo) o fuera de 08:00 a 18:59 hrs
+    IF TO_CHAR(SYSDATE, 'DY', 'NLS_DATE_LANGUAGE=ENGLISH') IN ('SAT', 'SUN')
+       OR TO_NUMBER(TO_CHAR(SYSDATE, 'HH24')) NOT BETWEEN 8 AND 18 THEN
+        v_operacion := CASE WHEN INSERTING THEN 'INSERTAR'
+                            WHEN UPDATING  THEN 'MODIFICAR'
+                            ELSE 'ELIMINAR' END;
+        RAISE_APPLICATION_ERROR(
+            -20003,
+            'Seguridad: No se permite ' || v_operacion || ' calificaciones fuera del horario (Lunes a Viernes de 08:00 a 18:59 hrs).'
+        );
+    END IF;
+END trg_control_horario_calificaciones;
+/
+
+-- ======================================================================
+-- 2. TRIGGER A NIVEL DE FILA (FOR EACH ROW)
 -- Tabla asociada: CALIFICACIONES
 -- Propósito: Garantizar la integridad de datos validando que las notas ingresadas o modificadas pertenezcan al rango de 1.0 a 7.0.
 -- ======================================================================
 CREATE OR REPLACE TRIGGER trg_validar_nota_bi
-BEFORE INSERT OR UPDATE ON calificaciones
+BEFORE INSERT OR UPDATE OF nota ON calificaciones
 FOR EACH ROW
 BEGIN
     IF :NEW.nota < 1.0 OR :NEW.nota > 7.0 THEN
@@ -16,25 +40,6 @@ BEGIN
         );
     END IF;
 END trg_validar_nota_bi;
-/
-
--- ======================================================================
--- 2. TRIGGER A NIVEL DE SENTENCIA (STATEMENT)
--- Tabla asociada: CALIFICACIONES
--- Propósito: Controlar la seguridad del sistema restringiendo cambios masivos o individuales fuera del horario laboral administrativo.
--- ======================================================================
-CREATE OR REPLACE TRIGGER trg_control_horario_calificaciones
-BEFORE INSERT OR UPDATE OR DELETE ON calificaciones
-BEGIN
-    -- Bloquea modificaciones los fines de semana (Sábado/Domingo) o fuera de 08:00 a 19:00 hrs
-    IF TO_CHAR(SYSDATE, 'DY', 'NLS_DATE_LANGUAGE=ENGLISH') IN ('SAT', 'SUN')
-       OR TO_NUMBER(TO_CHAR(SYSDATE, 'HH24')) NOT BETWEEN 8 AND 18 THEN
-        RAISE_APPLICATION_ERROR(
-            -20003,
-            'Seguridad: La modificación de calificaciones solo está permitida de Lunes a Viernes de 08:00 a 19:00 hrs.'
-        );
-    END IF;
-END trg_control_horario_calificaciones;
 /
 
 -- ======================================================================
