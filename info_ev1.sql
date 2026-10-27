@@ -106,7 +106,7 @@ CREATE TABLE calificaciones (
     id_matricula    NUMBER NOT NULL,
     id_carga        NUMBER NOT NULL, -- Asocia directamente al profesor y asignatura del curso
     nota            NUMBER(3,1) NOT NULL CHECK (nota BETWEEN 1.0 AND 7.0),
-    ponderacion     NUMBER(3,2) CHECK (ponderacion BETWEEN 0.01 AND 1.00),
+    ponderacion     NUMBER(3,2) NOT NULL CHECK (ponderacion BETWEEN 0.01 AND 1.00),
     fecha           DATE DEFAULT SYSDATE NOT NULL,
     descripcion     VARCHAR2(100), -- Ej: 'Prueba Parcial 1'
     CONSTRAINT fk_not_matricula FOREIGN KEY (id_matricula) REFERENCES matriculas(id_matricula),
